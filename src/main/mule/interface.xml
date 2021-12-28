@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+    <flow name="sys-reddit-feed-api-main">
+        <http:listener path="/api/*" config-ref="sys-reddit-feed-api-httpListenerConfig">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <ee:transform doc:name="set up original request variables" doc:id="9c704114-cfbc-42fe-ad67-0ad80039f1b3">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="requestDateTime"><![CDATA[%dw 2.0
+output application/java
+---
+now()]]></ee:set-variable>
+				<ee:set-variable variableName="originalClientId"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.headers.client_id default "-" ]]></ee:set-variable>
+				<ee:set-variable variableName="originalHttpVerb"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.method]]></ee:set-variable>
+				<ee:set-variable variableName="originalRequestUri"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.requestUri]]></ee:set-variable>
+				<ee:set-variable variableName="clientAddress"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.remoteAddress
+]]></ee:set-variable>
+				<ee:set-variable variableName="originalUriParams"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.uriParams default {}]]></ee:set-variable>
+				<ee:set-variable variableName="originalQueryParams"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.queryParams default {}]]></ee:set-variable>
+				<ee:set-variable variableName="originalHeaders" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.headers default {}]]></ee:set-variable>
+				<ee:set-variable variableName="responseFormat" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.headers.Accept default 'application/json']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="log-request" doc:id="c3cd825d-3608-415c-8a29-0327807fba17" name="log-request" />
+		<apikit:router config-ref="sys-reddit-feed-api-config"/>
+		<flow-ref doc:name="log-successful-response" doc:id="9d05c3db-8f72-452c-b22c-9aae796f7079" name="log-successful-response" />
+		<error-handler ref="interface-error-handler"/>
+    </flow>
+    <flow name="sys-reddit-feed-api-console">
+        <http:listener path="/console/*" config-ref="sys-reddit-feed-api-httpListenerConfig">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="sys-reddit-feed-api-config"/>
+		<error-handler ref="interface-error-handler" />
+    </flow>
+</mule>

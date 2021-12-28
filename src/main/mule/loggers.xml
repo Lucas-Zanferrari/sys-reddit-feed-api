@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="log-request" doc:id="8817b9a8-e724-4e5a-891e-59519b1aa5ac" >
+		<logger level="INFO" doc:name="Logger: log-request" doc:id="b3b663cd-6463-49b4-b1db-eb3b7eec9609" message='#[output application/json&#10;---&#10;{&#10;	log: {&#10;		message: "receiving request from $(vars.clientAddress)",&#10;		client_id: vars.originalClientId,&#10;		resource: "$(vars.originalHttpVerb) $(vars.originalRequestUri)",&#10;		correlation_id: correlationId,&#10;		request: {&#10;			query_params: vars.originalQueryParams,&#10;			uri_params: vars.originalUriParams,&#10;			headers: vars.originalHeaders,&#10;			date_time: vars.requestDateTime as String { format: "dd/MMM/uuuu:HH:mm:ss Z" }&#10;		}&#10;	}&#10;}]' />
+		<error-handler ref="logging-error-handler" />
+	</flow>
+	<flow name="log-successful-response" doc:id="38675158-e6f4-4560-aefb-179e6a0daaf3" >
+		<logger level="INFO" doc:name="Logger: log-successful-response" doc:id="89dfd806-c195-43ec-bf51-c15aa2a4c136" message='#[output application/json&#10;---&#10;{&#10;	log: {&#10;		message: "successfully processed request from $(vars.clientAddress)",&#10;		client_id: vars.originalClientId,&#10;		resource: "$(vars.originalHttpVerb) $(vars.originalRequestUri)",&#10;		correlation_id: correlationId,&#10;		request: {&#10;			query_params: vars.originalQueryParams,&#10;			uri_params: vars.originalUriParams,&#10;			headers: vars.originalHeaders,&#10;			date_time: vars.requestDateTime as String { format: "dd/MMM/uuuu:HH:mm:ss Z" }&#10;		},&#10;		response: {&#10;			body: if (isEmpty(payload)) null else write(payload, vars.responseFormat),&#10;			headers: vars.outboundHeaders default {},&#10;			statusCode: vars.httpStatus&#10;		}&#10;	}&#10;}]' />
+		<error-handler ref="logging-error-handler" />
+	</flow>
+	<flow name="log-request-error" doc:id="320c28b7-7449-44d0-be51-6dfed6e9c718" >
+		<logger level="INFO" doc:name="Logger: log-request-error" doc:id="51b71df0-04b5-4b01-9d66-52ae0de742dc" message='#[output application/json&#10;---&#10;{&#10;	log: {&#10;		message: "error while processing request from $(vars.clientAddress)",&#10;	    client_id: vars.originalClientId,&#10;		resource: "$(vars.originalHttpVerb) $(vars.originalRequestUri)",&#10;		correlation_id: correlationId,&#10;		request: {&#10;			query_params: vars.originalQueryParams,&#10;			uri_params: vars.originalUriParams,&#10;			headers: vars.originalHeaders,&#10;			date_time: vars.requestDateTime as String { format: "dd/MMM/uuuu:HH:mm:ss Z" }&#10;		},&#10;		response: {&#10;			body: if (isEmpty(payload)) null else write(payload, vars.responseFormat),&#10;			headers: vars.outboundHeaders default {},&#10;			statusCode: vars.httpStatus&#10;		},&#10;		error: {&#10;			description: error.description,&#10;			"type": error.errorType.asString&#10;		}&#10;	}&#10;}]' />
+		<error-handler ref="logging-error-handler" />
+	</flow>
+	<flow name="log-database-error" doc:id="05dd93d8-3726-43ca-a032-5eb84b4aa025" >
+		<logger level="INFO" doc:name="Logger: log-database-error" doc:id="d8f164b3-b718-4276-9414-52f0e23a07da" message='#[output application/json&#10;---&#10;{&#10;	log: {&#10;		message: "an error occurred while performing or validating a database operation",&#10;	    client_id: vars.originalClientId,&#10;		resource: "$(vars.originalHttpVerb) $(vars.originalRequestUri)",&#10;		correlation_id: correlationId,&#10;		request: {&#10;			date_time: vars.requestDateTime as String { format: "dd/MMM/uuuu:HH:mm:ss Z" }&#10;		},&#10;		error: {&#10;			description: error.description,&#10;			"type": error.errorType.asString&#10;		}&#10;	}&#10;}]' />
+	</flow>
+	<flow name="log-logging-error" doc:id="1abf7b6e-9bae-407a-b8af-13ee613558fe" >
+		<logger level="INFO" doc:name="Logger: log-logging-error" doc:id="e26b7fcd-1f55-40f5-b00b-8d0c05b96aa9" message='#[output application/json
+---
+{
+	log: {
+		message: "an error occurred while logging an error",
+	    client_id: vars.originalClientId,
+		resource: "$(vars.originalHttpVerb) $(vars.originalRequestUri)",
+		correlation_id: correlationId,
+		request: {
+			date_time: vars.requestDateTime as String { format: "dd/MMM/uuuu:HH:mm:ss Z" }
+		},
+		error: {
+			description: error.description,
+			"type": error.errorType.asString
+		}
+	}
+}]' />
+	</flow>
+</mule>

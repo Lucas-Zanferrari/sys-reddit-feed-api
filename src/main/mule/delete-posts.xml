@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<flow name="delete:\posts\(post_id):sys-reddit-feed-api-config" doc:id="f17aabc3-96ad-4e21-8424-fbe742bfddd2" >
+		<ee:transform doc:name="post_id" doc:id="a58047f5-2dc1-4116-8669-e3331a2c0f66" >
+			<ee:variables >
+				<ee:set-variable variableName="post_id" ><![CDATA[attributes.uriParams.'post_id']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:delete doc:name="Delete" doc:id="f7b64dd2-5089-4dc5-b645-4db546b55d06" config-ref="Database_Config" target="deletedRecordsQty">
+			<db:sql ><![CDATA[DELETE FROM ${secure::database.table} WHERE id = :post_id;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{ post_id: vars.post_id }]]]></db:input-parameters>
+		</db:delete>
+		<validation:is-true doc:name="Is true" doc:id="765ee3c0-76fb-4309-8786-cd5539513793" expression="#[vars.deletedRecordsQty &gt; 0]" message="Record does not exist"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="c491299f-8a14-4ee6-aa05-78ace6b7d23a" >
+				<flow-ref doc:name="log-database-error" doc:id="8ff5b20c-308d-44ce-9f92-44473e587907" name="log-database-error" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>

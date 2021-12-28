@@ -1,0 +1,14 @@
+#%RAML 1.0 Trait
+usage: Apply this trait to a GET method that supports pagination.
+queryParameters: 
+  limit?: 
+    type: integer
+    default: 50
+    minimum: 1
+    maximum: 100
+    description: The `limit` parameter restricts the number of entries returned.
+  page?:
+    type: integer
+    default: 0
+    minimum: 0
+    description: The `page` parameter specifies the page of results to return. Starts at 0.

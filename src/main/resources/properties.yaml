@@ -1,0 +1,11 @@
+api:
+  host: "0.0.0.0"
+  port: "8081"
+
+database:
+  host: "![4TOPePsCR/jCib7IeHJQxA==]"
+  port: "![1G+EBoPR+O3KMB2YQwUYhQ==]"
+  name: "![NptgwxX8yzXPaNBvO542iQ==]"
+  table: "![55bqdAOvMlrQRqfMGTG/Rw==]"
+  username: "![IxFQdzr1WjtnIdfI3nITcg==]"
+  password: "![IHifXHoRt7TNZTJQgmkUQw==]"

@@ -1,0 +1,102 @@
+#%RAML 1.0
+title: sys-reddit-feed-api
+version: 0.0.1
+description: This is the System API that exposes the our captured Feed data from Reddit
+traits:
+  client-id-required: !include /traits/client-id-required.raml
+  pageable: !include /traits/pageable.raml
+  json-and-xml-support: !include /traits/json-and-xml-support.raml
+
+mediaType: [ application/json, application/xml ]
+
+types:
+  OutboundPost: !include dataTypes/OutboundPost.raml
+  OutboundPostList: !include dataTypes/OutboundPostList.raml
+  InboundPost: !include dataTypes/InboundPost.raml
+  ErrorMessage: !include dataTypes/ErrorMessage.raml
+
+/posts:
+  is: [ json-and-xml-support, client-id-required ]
+  get:
+    is: [ pageable ]
+    responses:
+      200:
+        description: Returned when the post list is successfully retrieved
+        body: 
+          type: OutboundPostList
+          example: !include examples/outbound-post-list-example.json
+      400:
+        description: Returned when the request body is malformed
+        body: ErrorMessage
+      500:
+        description: Returned when the server fails to fullfil the request due to an unknown reason
+        body: ErrorMessage
+
+  /{post_id}:
+    uriParameters:
+      post_id:
+        maxLength: 6
+        minLength: 1
+    is: [ json-and-xml-support, client-id-required ]
+    get:
+      responses:
+        200:
+          body:
+            type: OutboundPost
+            example: !include examples/outbound-post-example.json
+        404:
+          description: Returned if the post does not exist
+          body: ErrorMessage
+        500:
+          description: Returned if the server fails to fullfil the request due to an unknown reason
+          body: ErrorMessage
+    post:
+      body: 
+        type: InboundPost
+        example: !include examples/inbound-post-example.json
+      responses:
+        201:
+          description: Returned if the post gets succesfully created
+          body:
+            type: OutboundPost
+            example: !include examples/outbound-post-example.json
+        400:
+          description: Returned when the request body is malformed
+          body: ErrorMessage
+        500:
+          description: Returned if the server fails to fullfil the request due to an unknown reason
+          body: ErrorMessage
+
+    put:
+      body:
+        type: InboundPost
+        example: !include examples/inbound-post-example.json
+      responses:
+        200:
+          description: Returned if the post is successfully updated
+          body: 
+            type: OutboundPost
+            example: !include examples/outbound-post-example.json
+        400:
+          description: Returned when the request body is malformed
+          body: ErrorMessage
+        404:
+          description: Returned when the post does not exist
+          body:
+            type: ErrorMessage
+        500:
+          description: Returned when the server fails to fullfil the request due to an unknown reason
+          body: ErrorMessage
+
+    delete:
+      responses:
+        204:
+          description: Returned if the post is successfully deleted
+        404:
+          description: Returned if the post does not exist
+          body: 
+            type: ErrorMessage
+        500:
+          description: Returned when the server fails to fullfil the request due to an unknown reason
+          body: ErrorMessage
+  

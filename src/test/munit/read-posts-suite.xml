@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="read-posts-suite.xml" />
+	<munit:test name="read-post-collection-in-json-test" doc:id="0dc3d27b-2e71-4dcf-a3d0-b4e6986e0dd5" >
+		<munit:behavior >
+			<munit:set-event doc:name="Set Input" doc:id="447fe784-b912-4919-a7da-7e7da91f3055" >
+				<munit:attributes value="#[readUrl('classpath://readpostcollectioninjsontest/set-event_attributes.dwl')]" />
+				<munit:variables >
+					<munit:variable key="originalClientId" value="#[output application/java --- readUrl('classpath://readpostcollectioninjsontest/set-event_variable_.dwl')]" encoding="UTF-8" mediaType="application/java" />
+					<munit:variable key="outboundHeaders" value="#[readUrl('classpath://readpostcollectioninjsontest/set-event_variable_1.dwl')]" />
+					<munit:variable key="originalHttpVerb" value="#[output application/java --- readUrl('classpath://readpostcollectioninjsontest/set-event_variable_2.dwl')]" encoding="UTF-8" mediaType="application/java" />
+					<munit:variable key="originalHeaders" value="#[output application/java --- readUrl('classpath://readpostcollectioninjsontest/set-event_variable_3.dwl')]" encoding="UTF-8" mediaType="application/java" />
+					<munit:variable key="originalRequestUri" value="#[output application/java --- readUrl('classpath://readpostcollectioninjsontest/set-event_variable_4.dwl')]" encoding="UTF-8" mediaType="application/java" />
+					<munit:variable key="responseFormat" value="#[output application/java --- readUrl('classpath://readpostcollectioninjsontest/set-event_variable_5.dwl')]" encoding="UTF-8" mediaType="application/java" />
+					<munit:variable key="requestDateTime" value="#[output application/java --- readUrl('classpath://readpostcollectioninjsontest/set-event_variable_6.dwl')]" encoding="UTF-8" mediaType="application/java" />
+					<munit:variable key="originalQueryParams" value="#[output application/java --- readUrl('classpath://readpostcollectioninjsontest/set-event_variable_7.dwl')]" encoding="UTF-8" mediaType="application/java" />
+					<munit:variable key="originalUriParams" value="#[output application/java --- readUrl('classpath://readpostcollectioninjsontest/set-event_variable_8.dwl')]" encoding="UTF-8" mediaType="application/java" />
+					<munit:variable key="clientAddress" value="#[output application/java --- readUrl('classpath://readpostcollectioninjsontest/set-event_variable_9.dwl')]" encoding="UTF-8" mediaType="application/java" />
+				</munit:variables>
+			</munit:set-event>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="28587ab1-4911-40e1-8597-f85a58b0bb04" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Select" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="c4758d79-edea-4da4-9c24-b91c63c9cbbc" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="Database_Config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/java &#10;---&#10;[&#10;    {&#10;        &quot;id&quot;: &quot;hyts0n&quot;,&#10;        &quot;title&quot;: &quot;r/aww has a Discord server&quot;,&#10;        &quot;author&quot;: &quot;N8theGr8&quot;,&#10;        &quot;thumbnail&quot;: &quot;https://b.thumbs.redditmedia.com/bOiv2eCLMlW3TsKlN2gxIJykNk3IYuZDHFjGtNofKlc.jpg&quot;,&#10;        &quot;text&quot;: &quot;&quot;,&#10;        &quot;ups&quot;: 4910,&#10;        &quot;downs&quot;: 0&#10;    },&#10;    {&#10;        &quot;id&quot;: &quot;rjluhg&quot;,&#10;        &quot;title&quot;: &quot;/r/HuskyTantrums: /r/aww Subreddit of the Week&quot;,&#10;        &quot;author&quot;: &quot;CorvusCalvaria&quot;,&#10;        &quot;thumbnail&quot;: &quot;default&quot;,&#10;        &quot;text&quot;: &quot;&quot;,&#10;        &quot;ups&quot;: 108,&#10;        &quot;downs&quot;: 0&#10;    },&#10;    {&#10;        &quot;id&quot;: &quot;rnyfw3&quot;,&#10;        &quot;title&quot;: &quot;Christmas with my family :)&quot;,&#10;        &quot;author&quot;: &quot;OFMartinPescador&quot;,&#10;        &quot;thumbnail&quot;: &quot;https://b.thumbs.redditmedia.com/CrUj-Rs9xKyEMrx3Vi2lLXsxtY8DEk2d0Wf-p8QfihM.jpg&quot;,&#10;        &quot;text&quot;: &quot;&quot;,&#10;        &quot;ups&quot;: 13600,&#10;        &quot;downs&quot;: 0&#10;    },&#10;    {&#10;        &quot;id&quot;: &quot;rnyhrw&quot;,&#10;        &quot;title&quot;: &quot;He's so mad.&quot;,&#10;        &quot;author&quot;: &quot;Getupkid1284&quot;,&#10;        &quot;thumbnail&quot;: &quot;https://b.thumbs.redditmedia.com/qCkUjbIW-OQ1byjC1EaBy_v_8aYKmA1_zOvN66oKSPk.jpg&quot;,&#10;        &quot;text&quot;: &quot;&quot;,&#10;        &quot;ups&quot;: 70822,&#10;        &quot;downs&quot;: 0&#10;    },&#10;    {&#10;        &quot;id&quot;: &quot;ro2z7t&quot;,&#10;        &quot;title&quot;: &quot;Happy cheetah enjoying ear rubs.&quot;,&#10;        &quot;author&quot;: &quot;Outrageous_Rise_5408&quot;,&#10;        &quot;thumbnail&quot;: &quot;https://a.thumbs.redditmedia.com/tF0vT0ph3_IwfCvBqhPmE5OlqGE1THm8ujqyj3vjco8.jpg&quot;,&#10;        &quot;text&quot;: &quot;&quot;,&#10;        &quot;ups&quot;: 2945,&#10;        &quot;downs&quot;: 0&#10;    }&#10;]]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to get:\posts:sys-reddit-feed-api-config" doc:id="21eb10b9-ab1d-49a2-b342-173abc69c686" name="get:\posts:sys-reddit-feed-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="63f33e7b-dea9-4f1d-b7dc-08c2cd9f37f8" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import readpostcollectioninjsontest::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+
+</mule>

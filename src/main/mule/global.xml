@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+    <http:listener-config name="sys-reddit-feed-api-httpListenerConfig">
+        <http:listener-connection host="${secure::api.host}" port="${secure::api.port}" />
+    </http:listener-config>
+    <apikit:config name="sys-reddit-feed-api-config" api="sys-reddit-feed-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="46b1fada-a85e-4ad3-9841-0b076f64596d" >
+		<db:my-sql-connection host="${secure::database.host}" port="${secure::database.port}" database="${secure::database.name}" user="${secure::database.username}" password="${secure::database.password}"/>
+	</db:config>
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="28dcd2ce-af54-400b-b2ae-f5b7e9a19bb3" file="properties.yaml" key="${secure.properties.key}" />
+	<configuration doc:name="Configuration" doc:id="182f3698-4dfa-429e-bfb6-cc53541566e8" defaultErrorHandler-ref="global-error-handler" />
+</mule>

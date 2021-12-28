@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<flow name="put:\posts\(post_id):application\json:sys-reddit-feed-api-config" doc:id="116d780b-f6de-4b6b-9036-a5210c119dba" >
+		<ee:transform doc:name="post_id" doc:id="3cb53496-2bf6-4e82-805a-6d2098133a97" >
+			<ee:variables >
+				<ee:set-variable variableName="post_id" ><![CDATA[attributes.uriParams.'post_id']]></ee:set-variable>
+				<ee:set-variable variableName="originalBody" ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:update doc:name="Update" doc:id="952322c5-a8fa-461d-9ff6-31111c445f55" config-ref="Database_Config">
+			<db:sql ><![CDATA[UPDATE ${secure::database.table} 
+SET title = :title,
+author = :author,
+thumbnail = :thumbnail,
+text = :text, 
+ups = :ups,
+downs = :downs
+WHERE id = :id;
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{ id: vars.post_id, title: payload.title, author: payload.author, thumbnail: payload.thumbnail, text: payload.text, ups: payload.ups, downs: payload.downs }]]]></db:input-parameters>
+		</db:update>
+		<validation:is-true doc:name="Is true" doc:id="fa300b76-7361-4808-a2f5-5b6ab131eecd" expression="#[payload.affectedRows &gt;= 1]" message="Record does not exist"/>
+		<flow-ref doc:name="update-post-response" doc:id="3dd5ac12-f6b7-44ec-a06e-de0a763e0a9f" name="update-post-response" />
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="f4c28117-06ff-425a-8130-7b09f941c673" >
+				<flow-ref doc:name="log-database-error" doc:id="7873f1d9-3755-495d-ad1e-90e442144b21" name="log-database-error" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="put:\posts\(post_id):application\xml:sys-reddit-feed-api-config" doc:id="ccfe027c-239d-4da5-9e64-774a41c3b4f2" >
+		<ee:transform doc:name="post_id" doc:id="afcd3f8b-87e7-420b-8e4b-6d3f0521a380" >
+			<ee:variables >
+				<ee:set-variable variableName="post_id" ><![CDATA[attributes.uriParams.'post_id']]></ee:set-variable>
+				<ee:set-variable variableName="originalBody" ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:update doc:name="Update" doc:id="90c9dcb1-59b2-437c-9265-95bdeaf19105" config-ref="Database_Config">
+			<db:sql><![CDATA[UPDATE ${secure::database.table} 
+SET title = :title,
+author = :author,
+thumbnail = :thumbnail,
+text = :text, 
+ups = :ups,
+downs = :downs
+WHERE id = :id;
+]]></db:sql>
+			<db:input-parameters><![CDATA[#[{ id: vars.post_id, title: payload.InboundPost.title, author: payload.InboundPost.author, thumbnail: payload.InboundPost.thumbnail, text: payload.InboundPost.text, ups: payload.InboundPost.ups, downs: payload.InboundPost.downs }]]]></db:input-parameters>
+		</db:update>
+		<validation:is-true doc:name="Is true" doc:id="da28ebcb-3dc5-4c64-937d-a6bf439caa61" expression="#[payload.affectedRows &gt;= 1]" message="Record does not exist" />
+		<flow-ref doc:name="update-post-response" doc:id="58480cc8-428c-4130-b65d-9d1e265c2ea9" name="update-post-response" />
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="27627340-fa45-4877-a438-4360dfc78b27" >
+				<flow-ref doc:name="log-database-error" doc:id="16491e5f-871b-4b98-bd0e-53ebf724a4b9" name="log-database-error" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="update-post-response" doc:id="9db0cb76-e923-447e-a355-9cbc51b70008" >
+		<choice doc:name="Choice" doc:id="9a51953b-761a-44d1-aa9d-220d56cba9b4" >
+			<when expression='vars.responseFormat == "application/xml"' >
+				<ee:transform doc:name="Transform Message" doc:id="2985cf96-d719-41ad-a40c-173259f14d48" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+OutboundPost: {
+  id: vars.post_id,
+  title: vars.originalBody.InboundPost.title,
+  author: vars.originalBody.InboundPost.author,
+  thumbnail: vars.originalBody.InboundPost.thumbnail,
+  text: vars.originalBody.InboundPost.text,
+  ups: vars.originalBody.InboundPost.ups,
+  downs: vars.originalBody.InboundPost.downs
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="009badc0-1bae-462e-9475-a28aeaf67698" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  id: vars.post_id,
+  title: vars.originalBody.title,
+  author: vars.originalBody.author,
+  thumbnail: vars.originalBody.thumbnail,
+  text: vars.originalBody.text,
+  ups: vars.originalBody.ups,
+  downs: vars.originalBody.downs
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>

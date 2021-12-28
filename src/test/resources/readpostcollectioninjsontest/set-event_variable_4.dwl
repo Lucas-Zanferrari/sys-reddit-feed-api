@@ -1,0 +1,1 @@
+"/api/posts?limit=5&page=0"

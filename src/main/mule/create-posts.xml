@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<flow name="post:\posts\(post_id):application\json:sys-reddit-feed-api-config" doc:id="c6803f58-97c2-4551-83d4-bf6c415e1a3f" >
+		<ee:transform doc:name="post_id" doc:id="fa7011cc-731c-47a4-9dd9-9c6f74e23377">
+			<ee:variables>
+				<ee:set-variable variableName="post_id"><![CDATA[attributes.uriParams.'post_id']]></ee:set-variable>
+				<ee:set-variable variableName="originalBody" ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:insert doc:name="Insert" doc:id="af071b92-bc3b-4361-91a8-052d9079562b" config-ref="Database_Config">
+			<db:sql><![CDATA[INSERT INTO ${secure::database.table} (id, title, author, thumbnail, text, ups, downs) 
+VALUES (:id, :title, :author, :thumbnail, :text, :ups, :downs);]]></db:sql>
+			<db:input-parameters><![CDATA[#[{ id: vars.post_id, title: payload.title, author: payload.author, thumbnail: payload.thumbnail, text: payload.text, ups: payload.ups, downs: payload.downs }]]]></db:input-parameters>
+		</db:insert>
+		<flow-ref doc:name="create-post-response" doc:id="facfcf68-ad9a-45fe-80f9-7b051385a6df" name="create-post-response"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="3d22c5a7-4d78-4fb5-8193-e9ecc9103e0b" >
+				<flow-ref doc:name="log-database-error" doc:id="acbe5d70-ae40-46a7-af33-f29b57d508f2" name="log-database-error" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="post:\posts\(post_id):application\xml:sys-reddit-feed-api-config" doc:id="dce96bd6-85a4-4265-857d-87251d714960">
+		<ee:transform doc:name="post_id" doc:id="b9135c95-8f9a-4849-a7e3-c07f9befdd8a">
+			<ee:variables>
+				<ee:set-variable variableName="post_id"><![CDATA[attributes.uriParams.'post_id']]></ee:set-variable>
+				<ee:set-variable variableName="originalBody"><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:insert doc:name="Insert" doc:id="a9c816be-3b6a-40d0-acd3-821af1ffdef3" config-ref="Database_Config">
+			<db:sql><![CDATA[INSERT INTO ${secure::database.table} (id, title, author, thumbnail, text, ups, downs) 
+VALUES (:id, :title, :author, :thumbnail, :text, :ups, :downs);]]></db:sql>
+			<db:input-parameters><![CDATA[#[{ id: vars.post_id, title: payload.InboundPost.title, author: payload.InboundPost.author, thumbnail: payload.InboundPost.thumbnail, text: payload.InboundPost.text, ups: payload.InboundPost.ups, downs: payload.InboundPost.downs }]]]></db:input-parameters>
+		</db:insert>
+		<flow-ref doc:name="create-post-response" doc:id="bdced75d-4929-4442-9fa6-0cceeacc3d06" name="create-post-response" />
+		<error-handler>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="14c1fb8c-6bee-4c9c-8f02-2493d89ee6b4">
+				<flow-ref doc:name="log-database-error" doc:id="f0347f6a-a99c-44c4-b243-ff8f3dd3486b" name="log-database-error" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="create-post-response" doc:id="f4e97a61-c18b-4ce1-a32e-67a13f2aa49b" >
+		<choice doc:name="Choice" doc:id="c81afef3-4f91-4ee1-9927-ce34a3d99fd2" >
+			<when expression='vars.responseFormat == "application/xml"' >
+				<ee:transform doc:name="Transform Message" doc:id="2d9200b8-2a71-417b-8bfe-49d1b2797a18" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+OutboundPost: {
+  id: vars.post_id,
+  title: vars.originalBody.InboundPost.title,
+  author: vars.originalBody.InboundPost.author,
+  thumbnail: vars.originalBody.InboundPost.thumbnail,
+  text: vars.originalBody.InboundPost.text,
+  ups: vars.originalBody.InboundPost.ups,
+  downs: vars.originalBody.InboundPost.downs
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Transform Message" doc:id="4d5937be-3b01-4d09-b5eb-d45d7232e405" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  id: vars.post_id,
+  title: vars.originalBody.title,
+  author: vars.originalBody.author,
+  thumbnail: vars.originalBody.thumbnail,
+  text: vars.originalBody.text,
+  ups: vars.originalBody.ups,
+  downs: vars.originalBody.downs
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>

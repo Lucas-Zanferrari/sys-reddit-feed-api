@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<flow name="get:\posts:sys-reddit-feed-api-config" doc:id="e95064da-1450-401e-8745-00a029349ba9" >
+		<ee:transform doc:name="page and limit" doc:id="6f683566-f88d-4aec-b932-a594fbe2ccda">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="limit"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.queryParams.limit as Number]]></ee:set-variable>
+				<ee:set-variable variableName="page"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.queryParams.page as Number]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:select doc:name="Select" doc:id="c4758d79-edea-4da4-9c24-b91c63c9cbbc" config-ref="Database_Config">
+			<db:sql><![CDATA[SELECT * FROM ${secure::database.table} LIMIT :limit OFFSET :offset;]]></db:sql>
+			<db:input-parameters><![CDATA[#[{ 
+    "limit": vars.limit,
+    "offset": vars.page * vars.limit
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="ec9c86f0-1f45-41c8-9d8e-b59bcf3919a2" >
+			<when expression='vars.responseFormat == "application/xml"'>
+				<ee:transform doc:name="Transform Message" doc:id="92515a2d-e71b-40bd-8dab-feac9b2533dd" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+---
+OutboundPostList: {
+  data: payload map {
+      id: $.id,
+      title: $.title,
+      author: $.author,
+      thumbnail: $.thumbnail,
+      text: $.text,
+      ups: $.ups as Number,
+      downs: $.downs as Number
+  }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Transform Message" doc:id="56461d5d-3e08-4958-8813-c1df34e17beb" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  data: payload map {
+      id: $.id,
+      title: $.title,
+      author: $.author,
+      thumbnail: $.thumbnail,
+      text: $.text,
+      ups: $.ups as Number,
+      downs: $.downs as Number
+  }
+}
+  ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="get:\posts\(post_id):sys-reddit-feed-api-config" doc:id="3b170910-bb3b-468b-b6ab-9d5cbda9d42f" >
+		<ee:transform doc:name="post_id" doc:id="0f9cf423-2da3-467d-88d6-b6c2c6ebb97a" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="post_id" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.uriParams.'post_id']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:select doc:name="Select" doc:id="8bbaf2b4-ef1d-45f7-ab54-2a58f17cb1ac" config-ref="Database_Config" >
+			<db:sql ><![CDATA[SELECT * FROM ${secure::database.table} WHERE id = :post_id; ]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{ 
+    "post_id": vars.post_id
+}]]]></db:input-parameters>
+		</db:select>
+		<validation:is-not-empty-collection doc:name="Is not empty collection" doc:id="cdde5136-12f5-4b27-adbc-c14724865c94" />
+		<choice doc:name="Choice" doc:id="d9dc9c90-34c7-4ced-be08-6b0f5058bf5f" >
+			<when expression='vars.responseFormat == "application/xml"' >
+				<ee:transform doc:name="Transform Message" doc:id="24cdbc14-7bba-46ea-8694-ca86f297069f" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+
+---
+OutboundPost: {
+  id: payload[0].id,
+  title: payload[0].title,
+  author: payload[0].author,
+  thumbnail: payload[0].thumbnail,
+  text: payload[0].text,
+  ups: payload[0].ups as Number,
+  downs: payload[0].downs as Number
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Transform Message" doc:id="dd77ff0d-d79a-4d00-8a98-394a20262d0c" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  id: payload[0].id,
+  title: payload[0].title,
+  author: payload[0].author,
+  thumbnail: payload[0].thumbnail,
+  text: payload[0].text,
+  ups: payload[0].ups as Number,
+  downs: payload[0].downs as Number
+}
+  ]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="6774b66c-1a93-4f65-a9d4-729e5f731e24" >
+				<flow-ref doc:name="log-database-error" doc:id="4dea6c62-0af0-4e09-9624-27ab762a64fd" name="log-database-error" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>
